@@ -4,8 +4,8 @@
 Program was made using Thonny and Visual Studio Code
 
 SG0 Program
-Authors: Elena Miller, Caleb Jacobs
-Date: 9/16/2025
+Authors: Luke Chaney, Aaron Kofman, Caleb Jacobs
+Date: 10/13/2025
 Description: The program reads a file and stores the content into a word list. Then the user then enters a word and the 
 """
 
@@ -15,7 +15,7 @@ from pathlib import Path
 file_extension = "txt" 
 #Prompt User what this program does, return nothing.
 def promptUser(): 
-    print("This app reads a text file, stores the text into a wordlist, and shows how many times a specific word is in the list.") 
+    print("This app reads up to 10 text files, stores each text file into a wordlist, displays uniformed table for each file and shows how many times a specific word is in the list.") 
     return 0 
  
 #Prompt user to enter filename, takes in x as parameter, and returns nothing when succesful
@@ -27,7 +27,7 @@ def promptUser():
 def getFile(x):
     file = ""
     while x == False: 
-        filename = input("Enter a filename (Must be within the same folder as the app):") 
+        filename = input("Please Enter up to 10 a filenames(All must be within the same folder as the app):") 
         if len(filename) > 0:
         #Since name of file exists, check if valid next.
             #Make sure file is adequate
@@ -49,8 +49,22 @@ def getFile(x):
         return filename 
     else:
          return 0 # return 0
- 
-#I Left off here, I may combine getFile and fileExists, will look back over later. Other than that, i moved some of your code in the main function into its own definition, then called it from main(). 
+
+#Get continuancy boolean value from if user wants to continue entering files.
+def getContinuancy(z):
+    #con = continue variable
+    con = input("Would you like to continue entering Files? Please enter Yes or No:").strip().lower()
+    if con == "yes" or con == "y":
+        z = True
+    elif con == "no" or con == "n":
+        z = False
+    else:
+        print("That answer is not valid, please try again")
+        #Recursively call the definition again and return its value
+        return getContinuancy(z)
+    return z
+    
+    
 #Get Content from file and make into wordlist
 def getContent(filename): 
 # return a wordlist.
@@ -135,28 +149,7 @@ def countOccurrences(wordList, searchWord):
         if low.find(searchWord.casefold()) > -1:
             count = count + 1
     return count
-"""
-def continueSearch():
-    yes =  ["Yes", "yes", "Y", "y"]
-    no = ["No", "no", "N", "n"]
-    valid = False
-    ansBool = False
-    while not valid:
-        answer = input("Do you want to search for another word? Please answer with Yes or No: ").strip()
-        try:
-            if yes.index(answer) > -1:
-                valid = True
-                ansBool = True
-            elif no.index(answer) > -1:
-                valid = True
-                ansBool = False
-            else:
-                print("Invalid answer: must be yes or no.")
-        except:
-            print("Invalid answer: must be yes or no.")
-            valid = False
-    return ansBool
-"""
+
 def continueSearch():
     yes =  ["yes", "y"]
     no = ["no", "n"]
@@ -181,13 +174,20 @@ def main():
     hist_count = []
     wordlist = []
     while x == False:
-        #Call each function to perform their own task 
-        file = getFile(x) 
-        wordlist = getContent(file)
-        if len(wordlist) > 0:
-            x = True
-        else:
-            print("File does not exist. Please Try again.")
+        #Call each function to perform their own task
+        z = True
+        y = 1
+        while(z == True or y <= 10):
+            file = getFile(x) 
+            wordlist = getContent(file)
+            y += 1
+            #Call getContinuancy to check if user wants to continue entering or not, it will return a boolean and
+            #definition will continue if z = True, will stop if its false. 
+            z = getContinuancy(z)
+            if len(wordlist) > 0:
+                x = True
+            else:
+                print("File does not exist. Please Try again.")
     while continueWordSearch == True:
         searchWord = getSearchWord()
         count = countOccurrences(wordlist,searchWord)
