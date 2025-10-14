@@ -6,7 +6,7 @@ Program was made using Thonny and Visual Studio Code
 SG0 Program
 Authors: Luke Chaney, Aaron Kofman, Caleb Jacobs
 Date: 10/13/2025
-Description: The program reads a file and stores the content into a word list. Then the user then enters a word and the 
+Description: This program reads up to 10 text files, stores each text file into a wordlist, displays uniformed table for each file and shows how many times a specific word is in the list.
 """
 
 from os import path
