@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 
 """
@@ -19,36 +20,26 @@ def promptUser():
     return 0 
  
 #Prompt user to enter filename, takes in x as parameter, and returns nothing when succesful
-# I'd like to 
-
 """ Take in filename, check if it has .txt on end and if it exists in filepath and then return boolean. 
-""" 
+"""
+def getFile():
+    filename = ""
+    while True:
+        filename = input("Please Enter a filename, you can enter up to 10 a filenames(All must be within the same folder as the app):")
+        if len(filename) == 0:
+            print("Input is empty, please try again.")
+            continue
 
-def getFile(x):
-    file = ""
-    while x == False: 
-        filename = input("Please Enter up to 10 a filenames(All must be within the same folder as the app):") 
-        if len(filename) > 0:
-        #Since name of file exists, check if valid next.
-            #Make sure file is adequate
-            a = filename.casefold() 
-            if (a.endswith(".txt")):# get file
-                file = Path(filename)
-                if file.exists():
-                    x = True
-                else:
-                    print("File does not exist. Please try again.")
-                
-            else: 
-                print("Invalid filetype. Must be a Text (*.txt) file)") 
-        else: 
-            print("Input is Empty, please try again") 
-            x = False 
-        
-    if x == True:  
-        return filename 
-    else:
-         return 0 # return 0
+        if not filename.lower().endswith(".txt"):
+            print("Invalid file type. Must be a text (*.txt) file.")
+            continue
+
+        file = Path(filename).resolve()
+        if not file.exists():
+            print("File does not exist. Please try again.")
+            continue
+
+        return str(file)
 
 #Get continuancy boolean value from if user wants to continue entering files.
 def getContinuancy(z):
@@ -163,7 +154,52 @@ def continueSearch():
         else:
             print("Invalid answer: must be yes or no.")
 
+def print_file_summary(all_wordlists):
+    """
+    This Definition will print a well-formatted table that includes:
+    - 3 columns, that show filename, total number of words in file,
+    and total number of distinct words in file.
+    """
+    if not all_wordlists:
+        print("There are no files to display")
+        return
+        
+    #Prepare data in specific format.
+    rows = []
+    #Append Filename, total words, and distinct words in first row. 
+    for fullpath, words in all_wordlists.items():
+        FileName = Path(fullpath).name
+        #t_words = total   d_words = distinct
+        t_words = len(words)
+        d_words = len(set(w.casefold() for w in words if len(w) > 0))
+        rows.append((FileName, t_words, d_words))
+    
+    #Create column width
+    #fn_width = filename, t_width = total, d_width = distinct_width
+    fn_width = max(len(r[0]) for r in rows)
+    t_width = max(len(str(r[1])) for r in rows)
+    d_width = max(len(str(r[2])) for r in rows)
+    
+    #Create Header
+    header_fn = "Filename"
+    header_distinct = "Distinct"
+    header_total = "TotalWords"
+    fn_width = max(fn_width, len(header_fn))
+    t_width = max(t_width, len(header_total))
+    d_width = max(d_width, len(header_distinct))
+    
+    
+    #Print Header
+    print() #Blank Line before 
+    print(f'{header_fn:>{fn_width}}  {header_total:>{t_width}}  {header_distinct:>{d_width}}')
+    print('-' * (fn_width + 2 + t_width + 2 + d_width))
 
+    #Print each row now
+    for name, total_words, distinct_words in rows:
+        print(f'{name:>{fn_width}}  {total_words:>{t_width}}  {distinct_words:>{d_width}}')
+
+    print()  # blank line after table
+    
     
 #Main Function creates global x variable and calls definitions in order. 
 def main(): 
@@ -172,30 +208,42 @@ def main():
     promptUser()
     hist_word = []
     hist_count = []
-    wordlist = []
+    #This List stores all File lists. 
+    all_wordlists = {}
+    
     while x == False:
         #Call each function to perform their own task
         z = True
         y = 1
-        while(z == True or y <= 10):
-            file = getFile(x) 
-            wordlist = getContent(file)
-            y += 1
-            #Call getContinuancy to check if user wants to continue entering or not, it will return a boolean and
-            #definition will continue if z = True, will stop if its false. 
-            z = getContinuancy(z)
-            if len(wordlist) > 0:
+        while(z == True and y <= 10):
+            file = getFile()
+            words = getContent(file) # words variable holds the words for each file
+            if len(words) > 0:
+                all_wordlists[file] = words #store each file separately
+                y += 1
+                #Call getContinuancy to check if user wants to continue entering or not
+                z = getContinuancy(z)
                 x = True
             else:
                 print("File does not exist. Please Try again.")
+                z = True
+                
+    #Once all files are entered, call print file def to print file summary table.            
+    print_file_summary(all_wordlists)
+    
     while continueWordSearch == True:
         searchWord = getSearchWord()
-        count = countOccurrences(wordlist,searchWord)
-        result = "The word \""+searchWord+"\" was found in the wordlist "+str(count)+ " time(s)."
-        print(result)
+        # count occurrences across all files
+        total_count = 0
+        file_counts = {}
+        for f, w in all_wordlists.items():
+            c = countOccurrences(w, searchWord)
+            file_counts[f] = c
+            print(f'The word "{searchWord}" was found in {Path(f).name}: {c} time(s).')
+
         # append BEFORE asking if they want to continue
         hist_word.append(searchWord)
-        hist_count.append(count)
+        hist_count.append(file_counts)
 
         continueWordSearch = continueSearch()
         if not continueWordSearch:
@@ -203,8 +251,7 @@ def main():
             print("words found: " + str(total))
             for i in range(total):
                 print(f'{hist_word[i]}: {hist_count[i]}')
-            print("SG0 Program Ended")
- 
+            print("SG1 Program Ended")
         
  
 #Call Main Definition.
